@@ -92,22 +92,25 @@ object Lab5 extends jsy.util.JsyApplication with Lab5Like {
 
   // List map with an operator returning a DoWith
   def mapWith[W,A,B](l: List[A])(f: A => DoWith[W,B]): DoWith[W,List[B]] = {
-    l.foldRight[DoWith[W,List[B]]]( ??? ) {
-      ???
+    l.foldRight[DoWith[W,List[B]]]( doreturn(Nil) ) { //
+      case (a, dwbs) => dwbs flatMap { (bs: List[B]) => (f(a): DoWith[W, B]).map((b) => b :: bs) }
     }
   }
 
   // Map map with an operator returning a DoWith
   def mapWith[W,A,B,C,D](m: Map[A,B])(f: ((A,B)) => DoWith[W,(C,D)]): DoWith[W,Map[C,D]] = {
-    m.foldRight[DoWith[W,Map[C,D]]]( ??? ) {
-      ???
+    m.foldRight[DoWith[W,Map[C,D]]]( doreturn(Map()) ) {
+      case (a, dwmap) => dwmap flatMap{ (currmap) => f(a) map {(cd) => currmap + (cd._1 -> cd._2)}}
     }
   }
 
   // Just like mapFirst from Lab 4 but uses a callback f that returns a DoWith in the Some case.
   def mapFirstWith[W,A](l: List[A])(f: A => Option[DoWith[W,A]]): DoWith[W,List[A]] = l match {
-    case Nil => ???
-    case h :: t => ???
+    case Nil => doreturn(l) //
+    case h :: t => f(h) match {
+      case None => mapFirstWith(t)(f) map { (ft) => h :: ft}
+      case Some(fh) => fh map { (fh) => fh :: t}
+    }
   }
 
   // There are better ways to deal with the combination of data structures like List, Map, and
