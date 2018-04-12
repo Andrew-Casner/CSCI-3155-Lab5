@@ -84,20 +84,15 @@ object Lab5 extends jsy.util.JsyApplication with Lab5Like {
   def mapWith[W,A,B](l: List[A])(f: A => DoWith[W,B]): DoWith[W,List[B]] = {
     l.foldRight[DoWith[W,List[B]]]( doreturn(Nil) ) {
       case (a, dwbs) => dwbs.flatMap((bs) => f(a).map((b) => b::bs))
-      // Point of this is that f wants to keep track of state, to do this, f will take in current state and
-      // produce news state, so it will look like f: (A, s) => (B, s), we call it a do with with state and B
-      // Flat map unpacks the dowith so that we can play with it
     }
   }
 
-  // Map map with an operator returning a DoWith
   def mapWith[W,A,B,C,D](m: Map[A,B])(f: ((A,B)) => DoWith[W,(C,D)]): DoWith[W,Map[C,D]] = {
     m.foldRight[DoWith[W,Map[C,D]]]( doreturn(Map.empty) ) {
       case (a, dwbs) => dwbs.flatMap((bs) => f(a).map((b) => bs+b))
     }
   }
 
-  // Just like mapFirst from Lab 4 but uses a callback f that returns a DoWith in the Some case.
   def mapFirstWith[W,A](l: List[A])(f: A => Option[DoWith[W,A]]): DoWith[W,List[A]] = l match {
     case Nil => doreturn(Nil)
     case h :: t => f(h) match {
